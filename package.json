@@ -1,25 +1,28 @@
 {
-  "name": "apify-ddproperty-scraper",
-  "version": "1.0.0",
-  "description": "Apify actor to scrape property listings from ddproperty.com",
-  "type": "module",
-  "main": "dist/main.js",
-  "scripts": {
-    "start": "node dist/main.js",
-    "build": "tsc",
-    "dev": "tsx src/main.ts",
-    "lint": "eslint src"
-  },
-  "dependencies": {
-    "apify": "^3.2.2",
-    "crawlee": "^3.9.0",
-    "@crawlee/playwright": "^3.9.0"
-  },
-  "devDependencies": {
-    "@apify/eslint-config": "^0.4.0",
-    "@playwright/test": "^1.44.0",
-    "@types/node": "^20.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.4.0"
-  }
+    "name": "apify-ddproperty-scraper",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "Apify actor to scrape property listings from ddproperty.com",
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "scripts": {
+        "start": "node dist/main.js",
+        "start:dev": "tsx src/main.ts",
+        "build": "tsc",
+        "postinstall": "npx crawlee install-playwright-browsers",
+        "lint": "eslint src"
+    },
+    "dependencies": {
+        "apify": "^3.7.0",
+        "@crawlee/playwright": "^3.9.0",
+        "playwright": "^1.44.0"
+    },
+    "devDependencies": {
+        "@apify/eslint-config": "^0.4.0",
+        "@apify/tsconfig": "^0.1.0",
+        "@types/node": "^20.0.0",
+        "tsx": "^4.7.0",
+        "typescript": "^5.4.0"
+    }
 }

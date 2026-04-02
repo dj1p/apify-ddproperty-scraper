@@ -1,5 +1,5 @@
-import { createPlaywrightRouter, Dataset } from 'crawlee';
-import type { Page } from '@playwright/test';
+import { createPlaywrightRouter } from '@crawlee/playwright';
+import type { Page } from 'playwright';
 import type { Input, PropertyListing } from './types.js';
 import { BTS_STATIONS, MRT_STATIONS, findNearestStation } from './bts-stations.js';
 
@@ -53,7 +53,7 @@ router.addHandler(LABELS.SEARCH, async ({ page, request, enqueueLinks, log }) =>
 });
 
 // Handle individual listing detail pages
-router.addHandler(LABELS.LISTING, async ({ page, request, log }) => {
+router.addHandler(LABELS.LISTING, async ({ page, request, pushData, log }) => {
     const maxItems = inputRef?.maxItems ?? 100;
     if (maxItems > 0 && itemCount >= maxItems) return;
 
@@ -85,7 +85,7 @@ router.addHandler(LABELS.LISTING, async ({ page, request, log }) => {
             }
         }
 
-        await Dataset.pushData(listing);
+        await pushData(listing);
         itemCount++;
         log.info(`Saved listing ${itemCount}: ${listing.title ?? request.url}`);
     } catch (err) {
@@ -94,7 +94,6 @@ router.addHandler(LABELS.LISTING, async ({ page, request, log }) => {
 });
 
 async function dismissPopups(page: Page) {
-    // Close cookie consent / modal overlays
     for (const selector of [
         'button[id*="accept"]',
         'button[class*="close"]',
@@ -110,28 +109,20 @@ async function dismissPopups(page: Page) {
 }
 
 async function extractListing(page: Page, url: string): Promise<PropertyListing> {
-    // Wait for main content
     await page.waitForSelector('h1', { timeout: 20_000 }).catch(() => null);
 
     const data = await page.evaluate(() => {
         const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() ?? null;
-        const getAttr = (sel: string, attr: string) =>
-            (document.querySelector(sel) as HTMLElement | null)?.getAttribute(attr) ?? null;
 
-        // Try to extract JSON-LD structured data first
+        // Try JSON-LD structured data first
         let jsonLd: Record<string, unknown> | null = null;
         const jsonLdEl = document.querySelector('script[type="application/ld+json"]');
         if (jsonLdEl?.textContent) {
-            try {
-                jsonLd = JSON.parse(jsonLdEl.textContent);
-            } catch {
-                // ignore
-            }
+            try { jsonLd = JSON.parse(jsonLdEl.textContent); } catch { /* ignore */ }
         }
 
         const title = getText('h1') ?? (jsonLd?.name as string | null);
 
-        // Price
         const priceText =
             getText('[data-testid="listing-price"]') ??
             getText('.price') ??
@@ -140,19 +131,17 @@ async function extractListing(page: Page, url: string): Promise<PropertyListing>
         const priceMatch = priceText?.replace(/[^0-9]/g, '');
         const price = priceMatch ? parseInt(priceMatch, 10) : null;
 
-        // Location
         const location =
             getText('[data-testid="listing-location"]') ??
             getText('.address') ??
-            (jsonLd?.address as Record<string, unknown> | null)?.streetAddress as string | null;
+            ((jsonLd?.address as Record<string, unknown> | null)?.streetAddress as string | null);
 
-        // Details — bedrooms, bathrooms, area
         const allText = document.body.innerText;
         const bedsMatch = allText.match(/(\d+)\s*(bed|bedroom)/i);
         const bathsMatch = allText.match(/(\d+)\s*(bath|bathroom)/i);
         const areaMatch = allText.match(/(\d[\d,]*)\s*sq\.?\s*m/i);
 
-        // Lat/lng from meta or window.__INITIAL_STATE__
+        // Lat/lng from Open Graph meta tags
         let lat: number | null = null;
         let lng: number | null = null;
         const metaLat = document.querySelector('meta[property="place:location:latitude"]');
@@ -162,28 +151,14 @@ async function extractListing(page: Page, url: string): Promise<PropertyListing>
             lng = parseFloat(metaLng.getAttribute('content') ?? '') || null;
         }
 
-        // Images
         const images = Array.from(document.querySelectorAll('img[src*="media"]'))
             .map((img) => (img as HTMLImageElement).src)
             .filter((src) => src.includes('http'))
             .slice(0, 20);
 
-        // Amenities
         const amenities = Array.from(
             document.querySelectorAll('[class*="ameniti"] li, [class*="feature"] li'),
-        )
-            .map((el) => el.textContent?.trim())
-            .filter(Boolean) as string[];
-
-        // Agent
-        const agentName = getText('[class*="agent-name"], [data-testid="agent-name"]');
-        const agentPhone = getText('[class*="agent-phone"], [data-testid="agent-phone"]');
-
-        // Property type
-        const propertyType = getText('[data-testid="property-type"], [class*="property-type"]');
-
-        // Description
-        const description = getText('[data-testid="description"], [class*="description"]');
+        ).map((el) => el.textContent?.trim()).filter(Boolean) as string[];
 
         return {
             title,
@@ -197,14 +172,13 @@ async function extractListing(page: Page, url: string): Promise<PropertyListing>
             floorArea: areaMatch ? parseInt(areaMatch[1].replace(',', ''), 10) : null,
             images,
             amenities,
-            agentName,
-            agentPhone,
-            propertyType,
-            description,
+            agentName: getText('[class*="agent-name"], [data-testid="agent-name"]'),
+            agentPhone: getText('[class*="agent-phone"], [data-testid="agent-phone"]'),
+            propertyType: getText('[data-testid="property-type"], [class*="property-type"]'),
+            description: getText('[data-testid="description"], [class*="description"]'),
         };
     });
 
-    // Extract listing ID from URL
     const idMatch = url.match(/(\d+)(?:[?#]|$)/);
 
     return {
