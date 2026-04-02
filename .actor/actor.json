@@ -1,0 +1,16 @@
+{
+  "actorSpecification": 1,
+  "name": "ddproperty-scraper",
+  "title": "DDProperty Scraper",
+  "description": "Scrapes property listings from ddproperty.com with optional location and BTS/MRT distance enrichment.",
+  "version": "1.0",
+  "buildTag": "latest",
+  "environmentVariables": {},
+  "defaultRunOptions": {
+    "build": "latest",
+    "timeoutSecs": 3600,
+    "memoryMbytes": 4096
+  },
+  "input": "./INPUT_SCHEMA.json",
+  "dockerfile": "./Dockerfile"
+}

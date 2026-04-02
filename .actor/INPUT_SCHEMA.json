@@ -1,0 +1,98 @@
+{
+  "title": "DDProperty Scraper Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "listingType": {
+      "title": "Listing Type",
+      "type": "string",
+      "description": "Whether to scrape properties for sale or for rent.",
+      "editor": "select",
+      "default": "sale",
+      "enum": ["sale", "rent"],
+      "enumTitles": ["For Sale", "For Rent"]
+    },
+    "propertyTypes": {
+      "title": "Property Types",
+      "type": "array",
+      "description": "Types of properties to scrape.",
+      "editor": "select",
+      "default": ["CONDO"],
+      "items": {
+        "type": "string",
+        "enum": ["CONDO", "HOUSE", "TOWNHOUSE", "LAND", "COMMERCIAL"],
+        "enumTitles": ["Condominium", "House", "Townhouse", "Land", "Commercial"]
+      }
+    },
+    "locations": {
+      "title": "Locations",
+      "type": "array",
+      "description": "List of location names or area codes to search in (e.g. 'Bangkok', 'Sukhumvit', 'Sathorn').",
+      "editor": "stringList",
+      "default": ["Bangkok"]
+    },
+    "minPrice": {
+      "title": "Minimum Price (THB)",
+      "type": "integer",
+      "description": "Minimum price in Thai Baht. Leave empty for no minimum.",
+      "editor": "number"
+    },
+    "maxPrice": {
+      "title": "Maximum Price (THB)",
+      "type": "integer",
+      "description": "Maximum price in Thai Baht. Leave empty for no maximum.",
+      "editor": "number"
+    },
+    "minBedrooms": {
+      "title": "Minimum Bedrooms",
+      "type": "integer",
+      "description": "Minimum number of bedrooms.",
+      "editor": "number",
+      "minimum": 0
+    },
+    "maxBedrooms": {
+      "title": "Maximum Bedrooms",
+      "type": "integer",
+      "description": "Maximum number of bedrooms.",
+      "editor": "number"
+    },
+    "maxItems": {
+      "title": "Maximum Items",
+      "type": "integer",
+      "description": "Maximum number of listings to scrape. Set to 0 for unlimited.",
+      "editor": "number",
+      "default": 100,
+      "minimum": 0
+    },
+    "enrichWithBtsDistance": {
+      "title": "Enrich with BTS/MRT Distance",
+      "type": "boolean",
+      "description": "Calculate the distance to the nearest BTS Skytrain and MRT station for each listing.",
+      "default": false
+    },
+    "enrichWithGoogleMaps": {
+      "title": "Enrich with Google Maps Data",
+      "type": "boolean",
+      "description": "Use Google Maps API to get enriched location data (walking times, nearby amenities). Requires a Google Maps API key.",
+      "default": false
+    },
+    "googleMapsApiKey": {
+      "title": "Google Maps API Key",
+      "type": "string",
+      "description": "Required if 'Enrich with Google Maps Data' is enabled.",
+      "editor": "textfield",
+      "isSecret": true
+    },
+    "proxyConfiguration": {
+      "title": "Proxy Configuration",
+      "type": "object",
+      "description": "Apify proxy configuration for bypassing anti-scraping measures.",
+      "editor": "proxy",
+      "prefill": {
+        "useApifyProxy": true,
+        "apifyProxyGroups": ["RESIDENTIAL"]
+      }
+    }
+  },
+  "required": ["listingType"]
+}
