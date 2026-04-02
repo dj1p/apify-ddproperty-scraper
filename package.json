@@ -10,8 +10,7 @@
         "start": "node dist/main.js",
         "start:dev": "tsx src/main.ts",
         "build": "tsc",
-        "postinstall": "npx crawlee install-playwright-browsers",
-        "lint": "eslint src"
+"lint": "eslint src"
     },
     "dependencies": {
         "apify": "^3.7.0",
@@ -20,8 +19,7 @@
     },
     "devDependencies": {
         "@apify/eslint-config": "^0.4.0",
-        "@apify/tsconfig": "^0.1.0",
-        "@types/node": "^20.0.0",
+    "@types/node": "^20.0.0",
         "tsx": "^4.7.0",
         "typescript": "^5.4.0"
     }
