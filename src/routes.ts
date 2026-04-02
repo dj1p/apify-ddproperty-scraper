@@ -1,5 +1,5 @@
 import { createPlaywrightRouter, Dataset } from 'crawlee';
-import type { Page } from 'playwright';
+import type { Page } from '@playwright/test';
 import type { Input, PropertyListing } from './types.js';
 import { BTS_STATIONS, MRT_STATIONS, findNearestStation } from './bts-stations.js';
 
@@ -32,7 +32,7 @@ router.addHandler(LABELS.SEARCH, async ({ page, request, enqueueLinks, log }) =>
     // Enqueue individual listing URLs
     const listingLinks = await page.$$eval(
         'a[href*="/en/property-"][href*="listing"]',
-        (els) => els.map((el) => (el as HTMLAnchorElement).href),
+        (els: Element[]) => els.map((el) => (el as HTMLAnchorElement).href),
     );
 
     for (const href of listingLinks) {
